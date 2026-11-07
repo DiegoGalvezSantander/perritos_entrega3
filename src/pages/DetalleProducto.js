@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { obtenerProductos, rutaImagen } from '../utils/productos';
+import { rutaImagen } from '../utils/productos';
 import { useCarrito } from '../context/CarritoContext';
+import { apiProductos } from '../services/api';
 
 export default function DetalleProducto() {
     const { id } = useParams();
-    const producto = obtenerProductos().find(p => p.id === parseInt(id));
+    const [producto, setProducto] = useState(null);
+    const [cargando, setCargando] = useState(true);
     const { agregar } = useCarrito();
-    if (!producto) return <main className="container py-5"><div className="alert alert-danger">Producto no encontrado.</div></main>;
+
+    useEffect(() => {
+        apiProductos.get(`/productos/${id}`)
+            .then(res => {
+                setProducto(res.data);
+                setCargando(false);
+            })
+            .catch((err) => {
+                console.error("Error al buscar producto:", err);
+                setCargando(false);
+            });
+    }, [id]);
+
+    if (cargando) return <main className="container py-5 text-center"><h3>Cargando producto...</h3></main>;
+    if (!producto) return <main className="container py-5"><div className="alert alert-danger">Producto no encontrado. Verifica que el ID exista en la base de datos.</div></main>;
 
     const tieneDescuento = producto.enOferta && producto.precioOriginal > producto.precio;
 
@@ -27,7 +43,7 @@ export default function DetalleProducto() {
                     <p className="fs-3 fw-bold" style={{ color: '#334b36' }}>${producto.precio.toLocaleString()}</p>
                     <p className="text-muted">📦 Stock: {producto.stock} unidades</p>
                     <p>{producto.descripcion}</p>
-                    <button className="btn btn-success btn-lg w-100 mt-3" onClick={() => agregar(producto)} aria-label={`Añadir ${producto.nombre} al carrito`}>🛒 Añadir al carrito</button>
+                    <button className="btn btn-success btn-lg w-100 mt-3" onClick={() => agregar(producto)}>🛒 Añadir al carrito</button>
                     <Link to="/productos" className="btn btn-outline-secondary w-100 mt-2">← Volver</Link>
                 </div>
             </div>

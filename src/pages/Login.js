@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSesion } from '../context/SesionContext';
-import { validarEmail, obtenerUsuarios } from '../utils/productos';
+import { validarEmail } from '../utils/productos';
+import { apiUsuarios } from '../services/api';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -10,17 +11,21 @@ export default function Login() {
     const { iniciar } = useSesion();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         if (!validarEmail(email)) { setError('❌ Email inválido.'); return; }
-        if (pass.length < 4 || pass.length > 10) { setError('❌ Contraseña: 4-10 caracteres.'); return; }
-        const usuario = obtenerUsuarios().find(u => u.email === email && u.password === pass);
-        if (!usuario) { setError('❌ Credenciales incorrectas.'); return; }
-        iniciar({ email: usuario.email, nombre: usuario.nombre, rol: usuario.tipo || 'Cliente' });
-        alert('✅ Bienvenido ' + usuario.nombre);
-        if (usuario.tipo === 'Administrador' || usuario.tipo === 'Vendedor') navigate('/admin');
-        else navigate('/');
+        if (pass.length < 4 || pass.length > 20) { setError('❌ Contraseña incorrecta.'); return; }
+        
+        try {
+            const res = await apiUsuarios.post('/auth/login', { email, password: pass });
+            iniciar(res.data);
+            alert('✅ Bienvenido ' + res.data.nombre);
+            if (res.data.tipo === 'ADMIN' || res.data.tipo === 'VENDEDOR') navigate('/admin');
+            else navigate('/');
+        } catch (err) {
+            setError('❌ Credenciales incorrectas.');
+        }
     };
 
     return (
@@ -42,7 +47,7 @@ export default function Login() {
                 </form>
                 <div className="text-center mt-3">¿No tienes cuenta? <Link to="/registro">Regístrate</Link></div>
                 <div className="alert alert-info mt-3 small text-center mb-0">
-                    Credenciales por defecto: <strong>admin@duoc.cl / 1234</strong>
+                    Credenciales por defecto: <strong>admin@duoc.cl / Admin1234</strong>
                 </div>
             </div>
         </main>

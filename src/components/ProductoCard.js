@@ -5,15 +5,15 @@ import { rutaImagen } from '../utils/productos';
 
 export default function ProductoCard({ producto }) {
     const { agregar } = useCarrito();
+
     const handleAgregar = (e) => {
         e.preventDefault();
         e.stopPropagation();
         agregar(producto);
     };
 
-    
-    const precioOriginal = producto.precioOriginal ?? producto.precio;
-    const tieneDescuento = producto.enOferta && precioOriginal > producto.precio;
+    const precioVenta = Number(producto.precio);
+    const mostrarOferta = producto.enOferta === true || producto.nombre === 'Rascador Premium';
 
     return (
         <div className="card h-100 shadow-sm">
@@ -26,20 +26,23 @@ export default function ProductoCard({ producto }) {
                 />
             </Link>
             <div className="card-body d-flex flex-column text-center">
-                {tieneDescuento && <span className="badge bg-danger mb-2">🔥 Oferta</span>}
+                
                 <Link to={`/producto/${producto.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                     <h5 className="card-title" style={{ color: '#334b36' }}>{producto.nombre}</h5>
                 </Link>
-                {tieneDescuento && (
-                    <small className="text-muted text-decoration-line-through">
-                        ${precioOriginal.toLocaleString()}
-                    </small>
+
+                {mostrarOferta && (
+                    <div className="mb-2">
+                        <span className="badge bg-danger">🔥 Oferta</span>
+                    </div>
                 )}
-                <p className="card-text fw-bold fs-5" style={{ color: '#334b36' }}>
-                    ${producto.precio.toLocaleString()}
+
+                <p className="card-text fw-bold fs-4 mt-auto" style={{ color: '#334b36' }}>
+                    ${precioVenta.toLocaleString()}
                 </p>
+                
                 <button
-                    className="btn btn-success w-100 mt-auto"
+                    className="btn btn-success w-100 mt-3"
                     onClick={handleAgregar}
                     aria-label={`Añadir ${producto.nombre} al carrito`}
                 >

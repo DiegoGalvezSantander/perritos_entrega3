@@ -12,16 +12,8 @@ export default function ListaProductos({ productos, onEditar, onEliminar }) {
                             {p.enOferta ? ' 🔥' : ''}
                         </span>
                         <div>
-                            <button
-                                className="btn btn-sm btn-outline-primary me-2"
-                                onClick={() => onEditar(p)}
-                                aria-label={`Editar ${p.nombre}`}
-                            >✏️</button>
-                            <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => onEliminar(p.id)}
-                                aria-label={`Eliminar ${p.nombre}`}
-                            >✕</button>
+                            <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEditar(p)}>✏️</button>
+                            <button className="btn btn-sm btn-outline-danger" onClick={() => onEliminar(p.id)}>✕</button>
                         </div>
                     </li>
                 ))}

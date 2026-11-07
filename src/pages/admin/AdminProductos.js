@@ -1,38 +1,55 @@
-import React, { useState } from 'react';
-import {
-    obtenerProductos,
-    crearProducto,
-    actualizarProducto,
-    eliminarProducto
-} from '../../utils/productos';
+import React, { useState, useEffect } from 'react';
+import { apiProductos } from '../../services/api';
 import FormProducto from '../../components/admin/FormProducto';
 import ListaProductos from '../../components/admin/ListaProductos';
 
 export default function AdminProductos() {
-    const [productos, setProductos] = useState(obtenerProductos());
+    const [productos, setProductos] = useState([]);
+    const [categorias, setCategorias] = useState([]);
     const [editando, setEditando] = useState(null);
 
-    const refrescar = () => setProductos(obtenerProductos());
-
-    const existeCodigo = (codigo) =>
-        productos.some(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
-
-    const handleSubmit = (datos) => {
-        if (editando) {
-            actualizarProducto(editando.id, datos);
-            alert('✅ Producto actualizado');
-        } else {
-            crearProducto(datos);
-            alert('✅ Producto creado');
+    const cargarDatos = async () => {
+        try {
+            const [resProd, resCat] = await Promise.all([
+                apiProductos.get('/productos'),
+                apiProductos.get('/categorias')
+            ]);
+            setProductos(resProd.data);
+            setCategorias(resCat.data);
+        } catch (error) {
+            console.error(error);
         }
-        refrescar();
-        setEditando(null);
     };
 
-    const handleEliminar = (id) => {
+    useEffect(() => { cargarDatos(); }, []);
+
+    const handleSubmit = async (datos) => {
+        try {
+            const catEncontrada = categorias.find(c => c.nombre === datos.categoria);
+            const payload = { ...datos, categoriaId: catEncontrada ? catEncontrada.id : 1 };
+
+            if (editando) {
+                await apiProductos.put(`/productos/${editando.id}`, payload);
+                alert('✅ Producto actualizado');
+            } else {
+                await apiProductos.post('/productos', payload);
+                alert('✅ Producto creado');
+            }
+            cargarDatos();
+            setEditando(null);
+        } catch (error) {
+            alert('❌ Error al guardar: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
+    const handleEliminar = async (id) => {
         if (!window.confirm('¿Eliminar?')) return;
-        eliminarProducto(id);
-        refrescar();
+        try {
+            await apiProductos.delete(`/productos/${id}`);
+            cargarDatos();
+        } catch (error) {
+            alert('❌ Error al eliminar');
+        }
     };
 
     return (
@@ -42,7 +59,7 @@ export default function AdminProductos() {
                 producto={editando}
                 onSubmit={handleSubmit}
                 onCancelar={() => setEditando(null)}
-                existeCodigo={existeCodigo}
+                categorias={categorias}
             />
             <ListaProductos
                 productos={productos}

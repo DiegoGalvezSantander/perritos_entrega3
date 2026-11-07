@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { obtenerOrdenes } from '../../utils/productos';
+import { apiVentas } from '../../services/api';
 
 export default function AdminOrdenes() {
-    const ordenes = obtenerOrdenes();
+    const [ordenes, setOrdenes] = useState([]);
+
+    useEffect(() => {
+        apiVentas.get('/boletas').then(res => setOrdenes(res.data)).catch(err => console.error(err));
+    }, []);
+
     return (
         <div>
             <h2>📋 Órdenes</h2>
@@ -13,14 +18,11 @@ export default function AdminOrdenes() {
                 <div key={o.id} className="card p-3 mb-2">
                     <div className="d-flex justify-content-between">
                         <div>
-                            <strong>Orden #{o.id}</strong> - {o.fecha}<br />
-                            👤 {o.cliente}<br />
+                            <strong>Orden #{o.id}</strong> - {new Date(o.fecha).toLocaleDateString()}<br />
+                            👤 {o.nombreCliente} {o.apellidosCliente}<br />
                             💰 ${o.total.toLocaleString()}<br />
-                            🛒 {o.productos.length} producto(s)
                         </div>
-                        <Link to={`/admin/boleta/${o.id}`} className="btn btn-sm btn-outline-success align-self-center">
-                            Ver boleta
-                        </Link>
+                        <Link to={`/admin/boleta/${o.id}`} className="btn btn-sm btn-outline-success align-self-center">Ver boleta</Link>
                     </div>
                 </div>
             ))}

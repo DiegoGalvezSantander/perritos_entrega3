@@ -1,86 +1,62 @@
-import React, { useState } from 'react';
-import {
-    obtenerUsuarios,
-    guardarUsuarios,
-    crearUsuario,
-    eliminarUsuario
-} from '../../utils/productos';
+import React, { useState, useEffect } from 'react';
+import { apiUsuarios } from '../../services/api';
 import FormUsuario from '../../components/admin/FormUsuario';
 import ListaUsuarios from '../../components/admin/ListaUsuarios';
 
 export default function AdminUsuarios() {
-    const [usuarios, setUsuarios] = useState(obtenerUsuarios());
-    const [editando, setEditando] = useState(null); // guarda email original
+    const [usuarios, setUsuarios] = useState([]);
+    const [editando, setEditando] = useState(null);
     const [creando, setCreando] = useState(false);
 
-    const refrescar = () => setUsuarios(obtenerUsuarios());
-
-    const emailExiste = (email) => usuarios.some(u => u.email === email);
-
-    const handleSubmit = (form) => {
-        if (editando !== null) {
-            const nuevos = usuarios.map(u =>
-                u.email === editando ? { ...u, ...form } : u
-            );
-            setUsuarios(nuevos);
-            guardarUsuarios(nuevos);
-            alert('✅ Usuario actualizado');
-        } else if (creando) {
-            crearUsuario({ ...form, password: '1234' });
-            refrescar();
-            alert('✅ Usuario creado (contraseña por defecto: 1234)');
+    const cargarUsuarios = async () => {
+        try {
+            const res = await apiUsuarios.get('/usuarios');
+            setUsuarios(res.data);
+        } catch (error) {
+            console.error("Error al cargar usuarios:", error);
         }
-        resetForm();
     };
 
-    const resetForm = () => {
-        setEditando(null);
-        setCreando(false);
+    useEffect(() => { cargarUsuarios(); }, []);
+
+    const handleSubmit = async (form) => {
+        try {
+            if (editando) {
+                await apiUsuarios.put(`/usuarios/${editando.id}`, form);
+                alert('✅ Usuario actualizado');
+            } else {
+                await apiUsuarios.post('/usuarios', form);
+                alert('✅ Usuario creado');
+            }
+            resetForm();
+            cargarUsuarios();
+        } catch (error) {
+            alert('❌ Error al guardar usuario: ' + (error.response?.data?.error || error.message));
+        }
     };
 
-    const handleEditar = (email) => {
-        const u = usuarios.find(x => x.email === email);
-        if (!u) return;
-        setEditando(email);
-        setCreando(false);
-    };
+    const resetForm = () => { setEditando(null); setCreando(false); };
 
-    const handleEliminar = (email) => {
-        if (!window.confirm('¿Eliminar?')) return;
-        eliminarUsuario(email);
-        refrescar();
+    const handleEliminar = async (id) => {
+        if (!window.confirm('¿Eliminar este usuario?')) return;
+        try {
+            await apiUsuarios.delete(`/usuarios/${id}`);
+            cargarUsuarios();
+        } catch (error) {
+            alert('❌ No puedes eliminarte a ti mismo o el usuario tiene dependencias.');
+        }
     };
-
-    const usuarioEditando = editando !== null
-        ? usuarios.find(u => u.email === editando)
-        : null;
 
     return (
         <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <h2>👤 Usuarios</h2>
-                <button
-                    className="btn btn-success"
-                    onClick={() => { setEditando(null); setCreando(true); }}
-                >
-                    ➕ Nuevo Usuario
-                </button>
+                <button className="btn btn-success" onClick={() => { setEditando(null); setCreando(true); }}>➕ Nuevo Usuario</button>
             </div>
-
-            {(editando !== null || creando) && (
-                <FormUsuario
-                    usuario={usuarioEditando}
-                    onSubmit={handleSubmit}
-                    onCancelar={resetForm}
-                    emailExiste={emailExiste}
-                />
+            {(editando || creando) && (
+                <FormUsuario usuario={editando} onSubmit={handleSubmit} onCancelar={resetForm} />
             )}
-
-            <ListaUsuarios
-                usuarios={usuarios}
-                onEditar={handleEditar}
-                onEliminar={handleEliminar}
-            />
+            <ListaUsuarios usuarios={usuarios} onEditar={setEditando} onEliminar={handleEliminar} />
         </div>
     );
 }

@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import {
-    validarRut,
-    validarEmail,
-    validarPassword,
-    validarNombre,
-    regiones,
-    comunas,
-    obtenerUsuarios,
-    crearUsuario
-} from '../utils/productos';
+import { validarRut, validarEmail, validarPassword, validarNombre, regiones, comunas } from '../utils/productos';
+import { apiUsuarios } from '../services/api';
 
 export default function Registro() {
     const [form, setForm] = useState({
@@ -21,7 +13,7 @@ export default function Registro() {
 
     const handleChange = (e) => setForm({ ...form, [e.target.id]: e.target.value });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
@@ -37,13 +29,13 @@ export default function Registro() {
         if (!form.comuna) { setError('❌ Comuna.'); return; }
         if (!form.direccion || form.direccion.length > 300) { setError('❌ Dirección.'); return; }
 
-        const usuarios = obtenerUsuarios();
-        if (usuarios.some(u => u.email === form.email)) {
-            setError('❌ Email ya registrado.'); return;
+        try {
+            await apiUsuarios.post('/auth/registro', form);
+            alert('✅ Registro exitoso.');
+            navigate('/login');
+        } catch (err) {
+            setError(err.response?.data?.error || '❌ Error al registrar usuario.');
         }
-        crearUsuario({ ...form, tipo: 'Cliente' });
-        alert('✅ Registro exitoso.');
-        navigate('/login');
     };
 
     const comunasDisponibles = form.region ? comunas[form.region] : [];
@@ -56,60 +48,46 @@ export default function Registro() {
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label className="form-label fw-bold">RUT *</label>
-                        <input id="rut" className="form-control" value={form.rut}
-                            onChange={handleChange} placeholder="19011022K" required />
+                        <input id="rut" className="form-control" value={form.rut} onChange={handleChange} placeholder="19011022K" required />
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Nombre *</label>
-                        <input id="nombre" className="form-control" value={form.nombre}
-                            onChange={handleChange} required />
+                        <input id="nombre" className="form-control" value={form.nombre} onChange={handleChange} required />
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Apellidos *</label>
-                        <input id="apellidos" className="form-control" value={form.apellidos}
-                            onChange={handleChange} required />
+                        <input id="apellidos" className="form-control" value={form.apellidos} onChange={handleChange} required />
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Email *</label>
-                        <input id="email" type="email" className="form-control" value={form.email}
-                            onChange={handleChange} required />
+                        <input id="email" type="email" className="form-control" value={form.email} onChange={handleChange} required />
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Contraseña *</label>
-                        <input id="password" type="password" className="form-control"
-                            value={form.password} onChange={handleChange} required />
+                        <input id="password" type="password" className="form-control" value={form.password} onChange={handleChange} required />
                         <small className="text-muted">4-10 caracteres, con mayúscula y número</small>
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Región *</label>
-                        <select id="region" className="form-select" value={form.region}
-                            onChange={handleChange} required>
+                        <select id="region" className="form-select" value={form.region} onChange={handleChange} required>
                             <option value="">Selecciona</option>
-                            {regiones.map(r => (
-                                <option key={r.id} value={r.id}>{r.nombre}</option>
-                            ))}
+                            {regiones.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
                         </select>
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Comuna *</label>
-                        <select id="comuna" className="form-select" value={form.comuna}
-                            onChange={handleChange} required>
+                        <select id="comuna" className="form-select" value={form.comuna} onChange={handleChange} required>
                             <option value="">Selecciona</option>
-                            {comunasDisponibles.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
+                            {comunasDisponibles.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     <div className="mb-3">
                         <label className="form-label fw-bold">Dirección *</label>
-                        <input id="direccion" className="form-control" value={form.direccion}
-                            onChange={handleChange} required />
+                        <input id="direccion" className="form-control" value={form.direccion} onChange={handleChange} required />
                     </div>
                     <button type="submit" className="btn btn-success w-100">Registrarse</button>
                 </form>
-                <div className="text-center mt-3">
-                    ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-                </div>
+                <div className="text-center mt-3">¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link></div>
             </div>
         </main>
     );

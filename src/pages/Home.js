@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { obtenerProductos } from '../utils/productos';
+import { apiProductos } from '../services/api';
 import ProductoCard from '../components/ProductoCard';
 
 export default function Home() {
-    const productos = obtenerProductos();
-    const destacados = productos.slice(0, 4);
+    const [productos, setProductos] = useState([]);
+
+    useEffect(() => {
+        apiProductos.get('/productos')
+            .then(res => {
+                const ordenados = res.data.sort((a, b) => (b.enOferta === true) - (a.enOferta === true));
+                setProductos(ordenados.slice(0, 4));
+            })
+            .catch(err => console.error(err));
+    }, []);
+
     return (
         <main>
             <section className="hero">
@@ -27,7 +36,7 @@ export default function Home() {
             <section className="container py-5">
                 <h2 className="text-center mb-4" style={{ color: '#334b36' }}>Productos destacados</h2>
                 <div className="row g-4">
-                    {destacados.map(p => (
+                    {productos.map(p => (
                         <div key={p.id} className="col-md-6 col-lg-3"><ProductoCard producto={p} /></div>
                     ))}
                 </div>

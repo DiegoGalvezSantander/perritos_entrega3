@@ -4,15 +4,15 @@ import { Link, useLocation } from 'react-router-dom';
 export default function AdminSidebar({ rol }) {
     const { pathname } = useLocation();
     const items = [
-        { to: '/admin', label: '📊 Dashboard', roles: ['Administrador', 'Vendedor'] },
-        { to: '/admin/productos', label: '📦 Productos', roles: ['Administrador', 'Vendedor'] },
-        { to: '/admin/productos-criticos', label: '⚠️ Stock Crítico', roles: ['Administrador', 'Vendedor'] },
-        { to: '/admin/categorias', label: '🏷️ Categorías', roles: ['Administrador'] },
-        { to: '/admin/usuarios', label: '👤 Usuarios', roles: ['Administrador'] },
-        { to: '/admin/ordenes', label: '📋 Órdenes', roles: ['Administrador', 'Vendedor'] },
-        { to: '/admin/historial', label: '📜 Historial', roles: ['Administrador'] },
-        { to: '/admin/reportes', label: '📈 Reportes', roles: ['Administrador'] },
-        { to: '/admin/perfil', label: '⚙️ Perfil', roles: ['Administrador', 'Vendedor'] }
+        { to: '/admin', label: '📊 Dashboard', roles: ['ADMIN', 'VENDEDOR'] },
+        { to: '/admin/productos', label: '📦 Productos', roles: ['ADMIN', 'VENDEDOR'] },
+        { to: '/admin/productos-criticos', label: '⚠️ Stock Crítico', roles: ['ADMIN', 'VENDEDOR'] },
+        { to: '/admin/categorias', label: '🏷️ Categorías', roles: ['ADMIN'] },
+        { to: '/admin/usuarios', label: '👤 Usuarios', roles: ['ADMIN'] },
+        { to: '/admin/ordenes', label: '📋 Órdenes', roles: ['ADMIN', 'VENDEDOR'] },
+        { to: '/admin/historial', label: '📜 Historial', roles: ['ADMIN'] },
+        { to: '/admin/reportes', label: '📈 Reportes', roles: ['ADMIN'] },
+        { to: '/admin/perfil', label: '⚙️ Perfil', roles: ['ADMIN', 'VENDEDOR'] }
     ];
     return (
         <aside className="admin-sidebar">

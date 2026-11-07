@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
-import { obtenerProductos, categorias, filtrarProductos } from '../utils/productos';
+import React, { useState, useEffect } from 'react';
+import { categorias, filtrarProductos } from '../utils/productos';
+import { apiProductos } from '../services/api';
 import ProductoCard from '../components/ProductoCard';
 
 export default function Productos() {
+    const [productos, setProductos] = useState([]);
+    const [cargando, setCargando] = useState(true);
     const [busqueda, setBusqueda] = useState('');
     const [catFiltro, setCatFiltro] = useState('');
-    const productos = obtenerProductos();
 
-    const filtrados = filtrarProductos(productos, {
-        busqueda,
-        categoria: catFiltro
-    });
+    useEffect(() => {
+        apiProductos.get('/productos')
+            .then(res => {
+                setProductos(res.data);
+                setCargando(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setCargando(false);
+            });
+    }, []);
+
+    const filtrados = filtrarProductos(productos, { busqueda, categoria: catFiltro });
+    
+    const productosOrdenados = [...filtrados].sort((a, b) => (b.enOferta === true) - (a.enOferta === true));
+
+    if (cargando) return <main className="container py-5 text-center"><h3>Cargando productos...</h3></main>;
 
     return (
         <main className="container py-4">
@@ -40,13 +55,13 @@ export default function Productos() {
                     </select>
                 </div>
             </div>
-            {filtrados.length === 0 ? (
+            {productosOrdenados.length === 0 ? (
                 <div className="alert alert-info text-center">
                     No se encontraron productos.
                 </div>
             ) : (
                 <div className="row g-4">
-                    {filtrados.map(p => (
+                    {productosOrdenados.map(p => (
                         <div key={p.id} className="col-md-6 col-lg-3">
                             <ProductoCard producto={p} />
                         </div>

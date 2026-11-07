@@ -12,7 +12,6 @@ export default function Header() {
 
     const esActivo = (ruta) => pathname === ruta ? 'nav-link activo' : 'nav-link';
 
-    
     const handleCerrarSesion = () => {
         cerrarSesion();
         navigate('/');
@@ -51,7 +50,7 @@ export default function Header() {
                         {sesion ? (
                             <>
                                 <span className="text-muted small">👤 {sesion.nombre}</span>
-                                {(sesion.rol === 'Administrador' || sesion.rol === 'Vendedor') && (
+                                {(sesion.tipo === 'ADMIN' || sesion.tipo === 'VENDEDOR') && (
                                     <Link to="/admin" className="btn btn-outline-secondary btn-sm" aria-label="Ir al panel de administración">
                                         ⚙️ Admin
                                     </Link>

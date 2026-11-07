@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { categorias, obtenerProductos } from '../utils/productos';
+import { categorias } from '../utils/productos';
+import { apiProductos } from '../services/api';
 
 export default function Categorias() {
-    const productos = obtenerProductos();
+    const [productos, setProductos] = useState([]);
+
+    useEffect(() => {
+        apiProductos.get('/productos').then(res => setProductos(res.data)).catch(() => {});
+    }, []);
+
     return (
         <main className="container py-5">
             <h2 className="text-center mb-4" style={{ color: '#334b36' }}>🏷️ Categorías</h2>

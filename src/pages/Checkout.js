@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarrito } from '../context/CarritoContext';
 import { useSesion } from '../context/SesionContext';
-import { regiones, comunas, crearOrden, validarEmail } from '../utils/productos';
+import { regiones, comunas, validarEmail } from '../utils/productos';
+import { apiVentas } from '../services/api';
 
 export default function Checkout() {
     const { carrito, total, vaciar } = useCarrito();
@@ -18,7 +19,7 @@ export default function Checkout() {
     const handleChange = (e) => setForm({ ...form, [e.target.id]: e.target.value });
     const comunasDisponibles = form.region ? comunas[form.region] : [];
 
-    const handlePagar = (e) => {
+    const handlePagar = async (e) => {
         e.preventDefault();
         setError('');
         if (!form.nombre) { setError('❌ Nombre requerido.'); return; }
@@ -27,25 +28,31 @@ export default function Checkout() {
         if (!form.calle) { setError('❌ Dirección requerida.'); return; }
         if (!form.region || !form.comuna) { setError('❌ Región y comuna requeridas.'); return; }
 
-        
-        const pagoExitoso = Math.random() > 0.1;
+        const productosParaVenta = carrito.map(item => ({
+            productoId: item.id,
+            cantidad: item.cantidad
+        }));
 
-        if (!pagoExitoso) {
+        try {
+            const payload = {
+                nombre: form.nombre,
+                apellidos: form.apellidos,
+                email: form.email,
+                calle: form.calle,
+                region: form.region,
+                comuna: form.comuna,
+                indicaciones: form.indicaciones,
+                productos: productosParaVenta
+            };
+            
+            const res = await apiVentas.post('/boletas', payload);
+            vaciar();
+            navigate('/pago-exitoso/' + res.data.id);
+        } catch (err) {
+            const mensajeError = err.response?.data?.error || err.message;
+            alert('❌ Error del backend: ' + mensajeError);
             navigate('/pago-error');
-            return;
         }
-
-        const orden = crearOrden({
-            fecha: new Date().toLocaleDateString('es-CL'),
-            cliente: form.nombre + ' ' + form.apellidos,
-            email: form.email,
-            direccion: `${form.calle}, ${form.comuna}, ${regiones.find(r => r.id == form.region)?.nombre}`,
-            indicaciones: form.indicaciones,
-            total,
-            productos: [...carrito]
-        });
-        vaciar();
-        navigate('/pago-exitoso/' + orden.id);
     };
 
     if (carrito.length === 0) return <main className="container py-5"><div className="alert alert-info text-center">Tu carrito está vacío.</div></main>;

@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { obtenerProductos } from '../utils/productos';
+import { apiProductos } from '../services/api';
 import ProductoCard from '../components/ProductoCard';
 
 export default function CategoriaDetalle() {
     const { nombre } = useParams();
     const catNombre = decodeURIComponent(nombre);
-    const productos = obtenerProductos().filter(p => p.categoria === catNombre);
+    const [productos, setProductos] = useState([]);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        // Traemos TODOS los productos y filtramos en el frontend por el nombre de la categoría
+        apiProductos.get('/productos')
+            .then(res => {
+                const filtrados = res.data.filter(p => p.categoria === catNombre);
+                setProductos(filtrados);
+                setCargando(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setCargando(false);
+            });
+    }, [catNombre]);
+
+    if (cargando) return <main className="container py-5 text-center"><h3>Cargando productos...</h3></main>;
+
     return (
         <main className="container py-5">
             <h2 className="text-center mb-4" style={{ color: '#334b36' }}>{catNombre}</h2>

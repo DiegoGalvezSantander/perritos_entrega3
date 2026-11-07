@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { obtenerProductos } from '../../utils/productos';
+import { apiProductos } from '../../services/api';
 
 export default function AdminProductosCriticos() {
-    const productos = obtenerProductos();
-    const criticos = productos.filter(p => p.stock <= p.stockCritico);
+    const [criticos, setCriticos] = useState([]);
+
+    useEffect(() => {
+        apiProductos.get('/productos/criticos').then(res => setCriticos(res.data)).catch(err => console.error(err));
+    }, []);
 
     return (
         <div>
@@ -18,8 +21,7 @@ export default function AdminProductosCriticos() {
                         {criticos.map(p => (
                             <li key={p.id} className="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>{p.nombre}</strong>
-                                    <br />
+                                    <strong>{p.nombre}</strong><br />
                                     <small className="text-muted">Stock actual: {p.stock} / Crítico: {p.stockCritico}</small>
                                 </div>
                                 <Link to="/admin/productos" className="btn btn-sm btn-warning">📦 Reponer</Link>
@@ -28,9 +30,7 @@ export default function AdminProductosCriticos() {
                     </ul>
                 </div>
             )}
-            <div className="mt-3">
-                <Link to="/admin/reportes" className="btn btn-outline-secondary">← Volver a Reportes</Link>
-            </div>
+            <div className="mt-3"><Link to="/admin" className="btn btn-outline-secondary">← Volver</Link></div>
         </div>
     );
 }

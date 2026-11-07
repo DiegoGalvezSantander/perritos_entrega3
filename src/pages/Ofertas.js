@@ -1,10 +1,22 @@
-import React from 'react';
-import { obtenerProductos } from '../utils/productos';
+import React, { useState, useEffect } from 'react';
+import { apiProductos } from '../services/api';
 import ProductoCard from '../components/ProductoCard';
 
 export default function Ofertas() {
-    const productos = obtenerProductos();
-    const ofertas = productos.filter(p => p.enOferta === true);
+    const [ofertas, setOfertas] = useState([]);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        apiProductos.get('/productos/ofertas')
+            .then(res => {
+                setOfertas(res.data);
+                setCargando(false);
+            })
+            .catch(() => setCargando(false));
+    }, []);
+
+    if (cargando) return <main className="container py-5 text-center"><h3>Cargando ofertas...</h3></main>;
+
     return (
         <main className="container py-5">
             <h2 className="text-center mb-2" style={{ color: '#334b36' }}>🎁 Ofertas</h2>

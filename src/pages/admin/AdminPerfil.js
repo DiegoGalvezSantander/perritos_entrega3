@@ -9,7 +9,7 @@ export default function AdminPerfil() {
             <div className="card p-3">
                 <p><strong>Nombre:</strong> {sesion?.nombre}</p>
                 <p><strong>Email:</strong> {sesion?.email}</p>
-                <p><strong>Rol:</strong> <span className="badge bg-info">{sesion?.rol}</span></p>
+                <p><strong>Rol:</strong> <span className="badge bg-info">{sesion?.tipo}</span></p>
             </div>
         </div>
     );
