@@ -13,7 +13,7 @@ export default function ProductoCard({ producto }) {
     };
 
     const precioVenta = Number(producto.precio);
-    const mostrarOferta = producto.enOferta === true || producto.nombre === 'Rascador Premium';
+    const mostrarOferta = producto.enOferta === true;
 
     return (
         <div className="card h-100 shadow-sm">
